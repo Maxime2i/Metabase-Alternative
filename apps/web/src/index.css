@@ -13,17 +13,47 @@ button:focus-visible {
   @apply outline-none ring-2 ring-violet-500 ring-offset-2 ring-offset-slate-100;
 }
 
-/* Subtle animation for loading */
-@keyframes pulse-soft {
+/* Skeleton loading pulse */
+@keyframes skeleton-pulse {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.6;
   }
   50% {
-    opacity: 0.7;
+    opacity: 1;
   }
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 1.5s ease-in-out infinite;
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Transitions for results and views – accentuées pour être bien visibles */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.transition-results {
+  animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.transition-view {
+  transition: background-color 0.35s ease-out, color 0.35s ease-out,
+    box-shadow 0.35s ease-out, transform 0.35s ease-out;
+}
+
+.transition-card {
+  transition: background-color 0.35s ease-out, transform 0.35s ease-out,
+    box-shadow 0.35s ease-out;
+}
+
+.animate-in {
+  animation: fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

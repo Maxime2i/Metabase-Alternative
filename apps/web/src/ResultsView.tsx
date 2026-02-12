@@ -98,12 +98,16 @@ export function ResultsView({
     const showHint = showChartHint && chartType !== "table" && !canChart;
     if (showHint) {
       return (
-        <div className="px-4 py-6 text-center text-sm text-slate-500">
+        <div className="animate-in px-4 py-6 text-center text-sm text-slate-500">
           Bar & Line need a numeric column (e.g. “How many X per Y?”)
         </div>
       );
     }
-    return <ResultsTable rows={rows} columns={columns} />;
+    return (
+      <div className="animate-in">
+        <ResultsTable rows={rows} columns={columns} />
+      </div>
+    );
   }
 
   const common = {
@@ -113,7 +117,7 @@ export function ResultsView({
 
   if (chartType === "bar") {
     return (
-      <div className="h-80 bg-slate-50/30 p-4">
+      <div className="animate-in h-80 bg-slate-50/30 p-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart {...common}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -138,7 +142,7 @@ export function ResultsView({
   }
 
   return (
-    <div className="h-80 bg-slate-50/30 p-4">
+    <div className="animate-in h-80 bg-slate-50/30 p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart {...common}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

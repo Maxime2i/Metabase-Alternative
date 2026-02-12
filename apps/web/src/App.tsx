@@ -9,6 +9,7 @@ import {
   type Report,
 } from "./api";
 import { ResultsView } from "./ResultsView";
+import { ResultsSkeleton } from "./ResultsSkeleton";
 
 type ChartType = "table" | "bar" | "line";
 
@@ -234,9 +235,20 @@ export default function App() {
               </div>
             )}
 
+            {/* Loading skeleton */}
+            {loading && (
+              <section className="space-y-4 transition-results">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="h-5 w-14 rounded bg-slate-200 skeleton-pulse" />
+                  <div className="h-8 w-32 rounded-lg bg-slate-100" />
+                </div>
+                <ResultsSkeleton />
+              </section>
+            )}
+
             {/* Results */}
             {result && (
-              <section className="space-y-4">
+              <section className="space-y-4 transition-results">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-slate-600">
@@ -248,10 +260,10 @@ export default function App() {
                           key={t}
                           type="button"
                           onClick={() => setChartType(t)}
-                          className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
+                          className={`transition-view rounded-md px-3 py-1.5 text-sm font-medium capitalize ${
                             chartType === t
-                              ? "bg-white text-violet-600 shadow-sm"
-                              : "text-slate-600 hover:text-slate-800"
+                              ? "bg-white text-violet-600 shadow-md scale-[1.02]"
+                              : "text-slate-600 hover:text-slate-800 hover:bg-slate-100"
                           }`}
                         >
                           {t}
@@ -329,7 +341,7 @@ export default function App() {
           </main>
 
           {/* Sidebar - Saved reports */}
-          <aside className="lg:w-80 lg:flex-shrink-0">
+          <aside className="w-full lg:w-80 lg:flex-shrink-0 lg:min-w-0">
             <div className="sticky top-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-slate-800">
                 Saved reports
@@ -345,7 +357,7 @@ export default function App() {
                   {reports.map((r) => (
                     <li
                       key={r.id}
-                      className="rounded-lg border border-slate-100 bg-slate-50/50 p-2 transition-colors hover:bg-slate-50"
+                      className="transition-card rounded-lg border border-slate-100 bg-slate-50/50 p-2 shadow-sm hover:bg-white hover:shadow-lg hover:-translate-y-1 active:scale-[0.98]"
                     >
                       {editingReportId === r.id ? (
                         <form
