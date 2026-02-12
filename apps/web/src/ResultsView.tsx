@@ -14,6 +14,7 @@ type Props = {
   rows: Record<string, unknown>[];
   columns?: string[];
   chartType: "table" | "bar" | "line";
+  showChartHint?: boolean;
 };
 
 function ResultsTable({
@@ -25,25 +26,32 @@ function ResultsTable({
 }) {
   const cols = columns ?? (rows[0] ? Object.keys(rows[0] as object) : []);
   if (rows.length === 0) {
-    return <p className="text-slate-500 italic py-4">No rows returned.</p>;
+    return (
+      <div className="px-4 py-8 text-center text-slate-500 text-sm">
+        No rows returned.
+      </div>
+    );
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow">
+    <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
-        <thead className="border-b border-slate-200 bg-slate-50 font-medium">
+        <thead className="border-b border-slate-200 bg-slate-50">
           <tr>
             {cols.map((c) => (
-              <th key={c} className="px-4 py-3 text-slate-700 capitalize">
+              <th
+                key={c}
+                className="px-4 py-3 font-medium text-slate-700 capitalize"
+              >
                 {String(c).replace(/_/g, " ")}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100">
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+            <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
               {cols.map((col) => (
-                <td key={col} className="px-4 py-2 text-slate-800">
+                <td key={col} className="px-4 py-2.5 text-slate-800">
                   {String((row as Record<string, unknown>)[col] ?? "")}
                 </td>
               ))}
@@ -64,7 +72,14 @@ function numericVal(x: unknown): number | null {
   return null;
 }
 
-export function ResultsView({ rows, columns, chartType }: Props) {
+const CHART_COLOR = "#8b5cf6"; /* violet-500 */
+
+export function ResultsView({
+  rows,
+  columns,
+  chartType,
+  showChartHint,
+}: Props) {
   const cols = columns ?? (rows[0] ? Object.keys(rows[0] as object) : []);
   const canChart =
     cols.length >= 2 &&
@@ -80,26 +95,39 @@ export function ResultsView({ rows, columns, chartType }: Props) {
     : [];
 
   if (chartType === "table" || !canChart) {
+    const showHint = showChartHint && chartType !== "table" && !canChart;
+    if (showHint) {
+      return (
+        <div className="px-4 py-6 text-center text-sm text-slate-500">
+          Bar & Line need a numeric column (e.g. “How many X per Y?”)
+        </div>
+      );
+    }
     return <ResultsTable rows={rows} columns={columns} />;
   }
 
   const common = {
     data: chartData,
-    margin: { top: 8, right: 8, left: 8, bottom: 8 },
+    margin: { top: 12, right: 12, left: 12, bottom: 12 },
   };
 
   if (chartType === "bar") {
     return (
-      <div className="h-80 rounded-lg border border-slate-200 bg-white p-4 shadow">
+      <div className="h-80 bg-slate-50/30 p-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart {...common}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+              }}
+            />
             <Bar
               dataKey="value"
-              fill="#3b82f6"
+              fill={CHART_COLOR}
               name={String(cols[1]).replace(/_/g, " ")}
               radius={[4, 4, 0, 0]}
             />
@@ -110,17 +138,22 @@ export function ResultsView({ rows, columns, chartType }: Props) {
   }
 
   return (
-    <div className="h-80 rounded-lg border border-slate-200 bg-white p-4 shadow">
+    <div className="h-80 bg-slate-50/30 p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart {...common}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="name" tick={{ fontSize: 12 }} />
           <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              borderRadius: "8px",
+              border: "1px solid #e2e8f0",
+            }}
+          />
           <Line
             type="monotone"
             dataKey="value"
-            stroke="#3b82f6"
+            stroke={CHART_COLOR}
             name={String(cols[1]).replace(/_/g, " ")}
             strokeWidth={2}
             dot={{ r: 4 }}

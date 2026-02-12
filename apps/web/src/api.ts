@@ -53,6 +53,19 @@ export async function createReport(data: {
   return res.json();
 }
 
+export async function updateReport(
+  id: number,
+  data: { name?: string; question?: string; chartType?: string }
+): Promise<Report> {
+  const res = await fetch(`${API_BASE}/reports/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update report");
+  return res.json();
+}
+
 export async function deleteReport(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/reports/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete report");

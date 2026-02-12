@@ -3,5 +3,27 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-100 text-slate-800 antialiased;
+}
+
+/* Smooth focus for accessibility */
+input:focus,
+textarea:focus,
+button:focus-visible {
+  @apply outline-none ring-2 ring-violet-500 ring-offset-2 ring-offset-slate-100;
+}
+
+/* Subtle animation for loading */
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.5s ease-in-out infinite;
 }
