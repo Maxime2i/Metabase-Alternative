@@ -9,6 +9,8 @@ import {
   Put,
 } from "@nestjs/common";
 import { ReportsService } from "./reports.service";
+import { CreateReportDto } from "./dto/create-report.dto";
+import { UpdateReportDto } from "./dto/update-report.dto";
 
 @Controller("reports")
 export class ReportsController {
@@ -25,15 +27,12 @@ export class ReportsController {
   }
 
   @Post()
-  create(@Body() body: { name: string; question: string; chartType?: string }) {
+  create(@Body() body: CreateReportDto) {
     return this.reportsService.create(body);
   }
 
   @Put(":id")
-  update(
-    @Param("id", ParseIntPipe) id: number,
-    @Body() body: { name?: string; question?: string; chartType?: string }
-  ) {
+  update(@Param("id", ParseIntPipe) id: number, @Body() body: UpdateReportDto) {
     return this.reportsService.update(id, body);
   }
 

@@ -7,5 +7,6 @@ dist
 .idea
 .vscode
 *.sqlite
+coverage
 drizzle/meta/*.json
 !drizzle/meta/_journal.json

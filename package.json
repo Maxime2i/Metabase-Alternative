@@ -6,6 +6,7 @@
     "dev:web": "pnpm --filter web dev",
     "build:api": "pnpm --filter api build",
     "build:web": "pnpm --filter web build",
+    "test": "pnpm --filter api test",
     "db:generate": "pnpm --filter api db:generate",
     "db:migrate": "pnpm --filter api db:migrate",
     "db:seed": "pnpm --filter api db:seed",

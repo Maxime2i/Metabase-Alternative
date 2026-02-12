@@ -7,13 +7,7 @@ import {
   Post,
 } from "@nestjs/common";
 import { QueryService } from "./query.service";
-
-export class QueryDto {
-  /** Raw SQL (only SELECT allowed). */
-  sql?: string;
-  /** Natural language question (requires OPENAI_API_KEY). */
-  question?: string;
-}
+import { QueryDto } from "./dto/query.dto";
 
 @Controller("query")
 export class QueryController {
@@ -22,9 +16,8 @@ export class QueryController {
   @Post()
   @HttpCode(HttpStatus.OK)
   async run(@Body() body: QueryDto) {
-    const hasSql = body?.sql != null && typeof body.sql === "string";
-    const hasQuestion =
-      body?.question != null && typeof body.question === "string";
+    const hasSql = body.sql != null && body.sql.trim() !== "";
+    const hasQuestion = body.question != null && body.question.trim() !== "";
     if (!hasSql && !hasQuestion) {
       throw new BadRequestException(
         "Provide either 'sql' or 'question' in body"
