@@ -81,4 +81,19 @@ describe("isAllowedSql", () => {
       reason: "Query contains forbidden statement(s)",
     });
   });
+
+  it("rejects multi-statement (only one SELECT per request)", () => {
+    expect(isAllowedSql("SELECT 1; SELECT 2")).toEqual({
+      allowed: false,
+      reason:
+        "Only a single SELECT statement is allowed (no semicolon-separated commands)",
+    });
+    expect(
+      isAllowedSql("SELECT * FROM doctors; SELECT * FROM patients")
+    ).toEqual({
+      allowed: false,
+      reason:
+        "Only a single SELECT statement is allowed (no semicolon-separated commands)",
+    });
+  });
 });

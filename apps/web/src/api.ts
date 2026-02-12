@@ -11,17 +11,27 @@ export type QueryResponse =
   | { error: string };
 
 export async function runQuery(question: string): Promise<QueryResponse> {
-  const res = await fetch(`${API_BASE}/query`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    return { error: data.message ?? data.error ?? "Request failed" };
+  try {
+    const res = await fetch(`${API_BASE}/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message = Array.isArray(data.message)
+        ? data.message.join(" ")
+        : data.message ?? data.error ?? "Request failed";
+      return { error: String(message) };
+    }
+    if (data.error) return { error: data.error };
+    return data as QueryResponse;
+  } catch (err) {
+    return {
+      error:
+        "Network error: the API could not be reached. Check that the API is running (e.g. pnpm dev:api).",
+    };
   }
-  if (data.error) return { error: data.error };
-  return data as QueryResponse;
 }
 
 export type Report = {

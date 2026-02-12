@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  RequestTimeoutException,
 } from "@nestjs/common";
 import { QueryService } from "./query.service";
 import { QueryDto } from "./dto/query.dto";
@@ -40,6 +41,9 @@ export class QueryController {
       );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Query failed";
+      if (message.includes("timed out")) {
+        throw new RequestTimeoutException(message);
+      }
       throw new BadRequestException(message);
     }
   }

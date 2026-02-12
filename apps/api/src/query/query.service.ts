@@ -73,6 +73,19 @@ export class QueryService {
         truncated: truncated || false,
         rowCount: rows.length,
       };
+    } catch (err: unknown) {
+      const pgErr = err as { code?: string; message?: string };
+      if (pgErr?.code === "57014") {
+        throw new Error(
+          `Query timed out after ${
+            this.timeoutMs / 1000
+          } seconds. Try a simpler query or increase QUERY_TIMEOUT_MS.`
+        );
+      }
+      if (err instanceof Error) {
+        throw new Error(`Database error: ${err.message}`);
+      }
+      throw err;
     } finally {
       client.release();
     }
@@ -82,7 +95,18 @@ export class QueryService {
     question: string,
     options: QueryOptions = {}
   ): Promise<QueryResult & { sql?: string }> {
-    const sql = await this.llmService.questionToSql(question);
+    let sql: string;
+    try {
+      sql = await this.llmService.questionToSql(question);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Natural language query failed";
+      throw new Error(
+        message.includes("OPENAI_API_KEY")
+          ? message
+          : `Natural language query failed: ${message}`
+      );
+    }
     const result = await this.runQuery(sql, options);
     return { ...result, sql };
   }
