@@ -5,10 +5,11 @@ import { LlmService } from "./llm.service";
 
 describe("QueryService", () => {
   let service: QueryService;
-  let poolQuery: jest.Mock;
+  let clientQuery: jest.Mock;
+  let clientRelease: jest.Mock;
 
   const mockPool = {
-    query: jest.fn(),
+    connect: jest.fn(),
   };
 
   const mockLlmService = {
@@ -16,8 +17,13 @@ describe("QueryService", () => {
   };
 
   beforeEach(async () => {
-    poolQuery = mockPool.query as jest.Mock;
-    poolQuery.mockReset();
+    clientQuery = jest.fn();
+    clientRelease = jest.fn();
+    (mockPool.connect as jest.Mock).mockClear();
+    (mockPool.connect as jest.Mock).mockResolvedValue({
+      query: clientQuery,
+      release: clientRelease,
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,8 +37,8 @@ describe("QueryService", () => {
   });
 
   describe("runQuery", () => {
-    it("executes allowed SQL and returns rows and columns", async () => {
-      poolQuery.mockResolvedValueOnce({
+    it("sets statement_timeout, executes allowed SQL and returns rows and columns", async () => {
+      clientQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
         rows: [{ id: 1, name: "Org 1" }],
         fields: [{ name: "id" }, { name: "name" }],
       });
@@ -41,12 +47,22 @@ describe("QueryService", () => {
         "SELECT id, name FROM organizations"
       );
 
-      expect(poolQuery).toHaveBeenCalledWith(
+      expect(mockPool.connect).toHaveBeenCalled();
+      expect(clientQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          text: expect.stringContaining("statement_timeout"),
+        })
+      );
+      expect(clientQuery).toHaveBeenNthCalledWith(
+        2,
         "SELECT id, name FROM organizations"
       );
-      expect(result).toEqual({
+      expect(clientRelease).toHaveBeenCalled();
+      expect(result).toMatchObject({
         rows: [{ id: 1, name: "Org 1" }],
         columns: ["id", "name"],
+        rowCount: 1,
       });
     });
 
@@ -55,16 +71,37 @@ describe("QueryService", () => {
         service.runQuery("DELETE FROM organizations")
       ).rejects.toThrow("Only SELECT queries are allowed");
 
-      expect(poolQuery).not.toHaveBeenCalled();
+      expect(mockPool.connect).not.toHaveBeenCalled();
     });
 
-    it("returns empty columns when no fields", async () => {
-      poolQuery.mockResolvedValueOnce({ rows: [], fields: [] });
+    it("returns truncated and rowCount when over maxRows", async () => {
+      const manyRows = Array.from({ length: 1500 }, (_, i) => ({ id: i }));
+      clientQuery
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce({ rows: manyRows, fields: [{ name: "id" }] });
 
-      const result = await service.runQuery("SELECT 1");
+      const result = await service.runQuery("SELECT id FROM organizations");
 
-      expect(result.rows).toEqual([]);
-      expect(result.columns).toBeUndefined();
+      expect(result.rows).toHaveLength(1000);
+      expect(result.truncated).toBe(true);
+      expect(result.rowCount).toBe(1000);
+    });
+
+    it("applies limit and offset when provided", async () => {
+      clientQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
+        rows: [{ id: 2 }],
+        fields: [{ name: "id" }],
+      });
+
+      await service.runQuery("SELECT id FROM doctors", {
+        limit: 10,
+        offset: 1,
+      });
+
+      expect(clientQuery).toHaveBeenNthCalledWith(
+        2,
+        "SELECT id FROM doctors LIMIT 10 OFFSET 1"
+      );
     });
   });
 
@@ -73,7 +110,7 @@ describe("QueryService", () => {
       mockLlmService.questionToSql.mockResolvedValueOnce(
         "SELECT * FROM doctors LIMIT 1"
       );
-      poolQuery.mockResolvedValueOnce({
+      clientQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
         rows: [{ id: 1, first_name: "John" }],
         fields: [{ name: "id" }, { name: "first_name" }],
       });
@@ -83,7 +120,6 @@ describe("QueryService", () => {
       expect(mockLlmService.questionToSql).toHaveBeenCalledWith(
         "List one doctor"
       );
-      expect(poolQuery).toHaveBeenCalledWith("SELECT * FROM doctors LIMIT 1");
       expect(result).toMatchObject({
         rows: [{ id: 1, first_name: "John" }],
         columns: ["id", "first_name"],

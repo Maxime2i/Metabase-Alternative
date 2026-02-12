@@ -1,7 +1,13 @@
 const API_BASE = "/api";
 
 export type QueryResponse =
-  | { rows: Record<string, unknown>[]; columns?: string[]; sql?: string }
+  | {
+      rows: Record<string, unknown>[];
+      columns?: string[];
+      sql?: string;
+      truncated?: boolean;
+      rowCount: number;
+    }
   | { error: string };
 
 export async function runQuery(question: string): Promise<QueryResponse> {

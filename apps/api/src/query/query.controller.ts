@@ -27,10 +27,17 @@ export class QueryController {
       throw new BadRequestException("Provide only one of 'sql' or 'question'");
     }
     try {
+      const options = {
+        limit: body.limit,
+        offset: body.offset,
+      };
       if (hasSql) {
-        return await this.queryService.runQuery(body.sql!);
+        return await this.queryService.runQuery(body.sql!, options);
       }
-      return await this.queryService.runNaturalLanguage(body.question!);
+      return await this.queryService.runNaturalLanguage(
+        body.question!,
+        options
+      );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Query failed";
       throw new BadRequestException(message);

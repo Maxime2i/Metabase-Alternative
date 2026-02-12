@@ -26,6 +26,8 @@ export default function App() {
     rows: Record<string, unknown>[];
     columns?: string[];
     sql?: string;
+    truncated?: boolean;
+    rowCount: number;
   } | null>(null);
   const [chartType, setChartType] = useState<ChartType>("table");
   const [reports, setReports] = useState<Report[]>([]);
@@ -58,6 +60,8 @@ export default function App() {
         rows: data.rows,
         columns: data.columns,
         sql: data.sql,
+        truncated: data.truncated,
+        rowCount: data.rowCount ?? data.rows.length,
       });
     } finally {
       setLoading(false);
@@ -87,6 +91,8 @@ export default function App() {
         rows: data.rows,
         columns: data.columns,
         sql: data.sql,
+        truncated: data.truncated,
+        rowCount: data.rowCount ?? data.rows.length,
       });
     } finally {
       setLoading(false);
@@ -253,8 +259,9 @@ export default function App() {
                       ))}
                     </div>
                     <span className="text-xs text-slate-400">
-                      {result.rows.length} row
-                      {result.rows.length !== 1 ? "s" : ""}
+                      {result.rowCount} row
+                      {result.rowCount !== 1 ? "s" : ""}
+                      {result.truncated ? " (truncated)" : ""}
                     </span>
                   </div>
                   <button
